@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "pcb-defect-detection"
+version = "0.1.0"
+description = ""
+authors = ["Simone Lederer <simone.lederer@zeiss.com>"]
+readme = "README.md"
+packages = [{include = "pcb", from="src"},
+    {include="scripts", from="src"},]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pathlib = "^1.0.1"
+scikit-learn = "^1.5.2"
+pandas = "^2.2.3"
+matplotlib = "^3.9.2"
+pyyaml = "^6.0.2"
+fastparquet = "^2024.5.0"
+logging = "^0.4.9.6"
+numpy = "<2.0.0"
+
+[tool.poetry.group.deep.dependencies]
+torch = [
+    { markers = "sys_platform != 'linux'", version = "^2.4.1", source = "PyPI" },
+    { markers = "sys_platform == 'linux'", version = "==2.4.1+cu118", source = "torchcu118" }
+]
+torchvision =[
+    { markers = "sys_platform != 'linux'", version = "==0.19.1", source = "PyPI" },
+    { markers = "sys_platform == 'linux'", version = "==0.19.1+cu118", source = "torchcu118" }
+]
+ultralytics = "^8.3.10"
+sahi = "^0.11.18"
+opencv-python = "<=4.9.0.80"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.7.0"
+ruff = "^0.4.2"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[[tool.poetry.source]]
+name = "torchcu118"
+url = "https://download.pytorch.org/whl/cu118"
+priority = "explicit"
+
+
+[tool.poetry.scripts]
+yolo-preprocess = "scripts.yolo_preprocess:main"
+yolo-train = "scripts.yolo_train:main"
+yolo-train-result = "scripts.yolo_train_results:main"
+yolo-predict = "scripts.yolo_inference:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.bandit]
+skips = [
+	"B405", # TODO: fix xml package usage
+	"B314",	# TODO: fix xml package usage
+]
+#exclude_dirs = ["*/tests/*"]
