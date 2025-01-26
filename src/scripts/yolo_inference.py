@@ -18,11 +18,18 @@ def inference(
     dest_results_dir: Path, 
     output_dir: Path,
     model_path: Path = Path("/Users/rey/Downloads/PCB_defect_detection-main/yolo11m.pt"),
-    run_tiled_inference: bool = True
+    run_tiled_inference: bool = True,
+    save_dir: Path | None = None,
 ):
     """
     Run optimized inference on the test dataset
     """
+    if save_dir is None:
+        save_dir = Path.cwd() / "results"
+    save_dir.mkdir(parents=True, exist_ok=True)
+    
+    predict_dir = save_dir / "predict"
+    
     # Load the model
     if not model_path.exists():
         raise FileNotFoundError(f"YOLO11m model not found at {model_path}")
@@ -33,7 +40,6 @@ def inference(
     test_data_dir = output_dir / "images" / "val"
 
     model_device = "cuda" if torch.cuda.is_available() else "cpu"
-    predict_dir = Path("runs/detect/predict")
     
     if run_tiled_inference:
         logger.info("Running tiled inference on the test dataset:")
@@ -47,6 +53,8 @@ def inference(
             slice_width=320,
             overlap_height_ratio=0.4,
             overlap_width_ratio=0.4,
+            project=str(save_dir),
+            name="predict"
         )
     else:
         logger.info("Running standard inference on the test dataset:")
@@ -59,8 +67,8 @@ def inference(
             save_txt=True,
             save_conf=True,
             augment=True,
-            project=predict_dir.parent,
-            name=predict_dir.name
+            project=str(save_dir),
+            name="predict"
         )
     logger.info("Inference completed.")
 
@@ -70,21 +78,22 @@ def inference(
 def main():
     # Get dataset directory
     dataset_dir = get_dataset_dir()
-    dest_results_dir = Path.cwd().parent.resolve() / "results"
+    results_dir = Path.cwd() / "results"
     output_dir = dataset_dir / "output"
 
     # LOAD ANNOTATIONS
     annot_df = pd.read_parquet(dataset_dir / "annotation.parquet")
 
     metric, predict_dir = inference(
-        dest_results_dir=dest_results_dir, 
+        dest_results_dir=results_dir,
         output_dir=output_dir,
-        model_path=Path("/Users/rey/Downloads/PCB_defect_detection-main/yolo11m.pt")
+        model_path=Path("/Users/rey/Downloads/PCB_defect_detection-main/yolo11m.pt"),
+        save_dir=results_dir
     )
     logger.debug(f"Metrics: {metric}")
 
     # Copy results
-    dest_predict_dir = dest_results_dir / "predict"
+    dest_predict_dir = results_dir / "predict"
     if predict_dir.exists():
         shutil.copytree(predict_dir, dest_predict_dir, dirs_exist_ok=True)
     else:

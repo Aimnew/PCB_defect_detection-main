@@ -42,12 +42,17 @@ def train(
     mixup: float = 0.3,
     device: Literal["cpu", "mpg", 0] | None = None,
     mosaic: float = 1.0,
+    save_dir: Path | None = None,
 ):
     """
     Train a YOLO11m model with improved parameters
     """
     logger.info("Start training.")
     project = f"pcb_yolo11m_epochs_{epochs}_batch_{batch}"
+
+    if save_dir is None:
+        save_dir = Path.cwd() / "results"
+    save_dir.mkdir(parents=True, exist_ok=True)
 
     if not model_path.exists():
         raise FileNotFoundError(f"YOLO11m model not found at {model_path}")
@@ -89,7 +94,8 @@ def train(
         imgsz=imgsz,
         save_period=save_period,
         verbose=verbose,
-        project=project,
+        project=str(save_dir),
+        name=project,
         mixup=mixup,
         device=device,
         mosaic=mosaic,

@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 
 def eval_results(
-    model_dir: str = "pcb_yolo11m_epochs_100_batch_-1",
+    model_dir: str = "pcb_yolo11m_epochs_1_batch_-1",
     results_dir: Path = Path.cwd() / "results",
 ) -> None:
     """
@@ -19,7 +19,7 @@ def eval_results(
     :return:
     """
     # Check if training results exist
-    results_model_dir = Path.cwd() / model_dir / "train"
+    results_model_dir = results_dir / model_dir / "train"
     if not results_model_dir.exists():
         logger.error(f"Training results not found at {results_model_dir}")
         logger.info("Please run training first using 'poetry run yolo-train'")
@@ -58,12 +58,9 @@ def eval_results(
 
 
 def main():
-    # ToDo: set directories in global config
-    # ToDO: add click/argparse for arguments
-    root_dir = Path.cwd().parent.resolve()
-    results_dir = root_dir / "results"
+    results_dir = Path.cwd() / "results"
     eval_results(
-        model_dir="pcb_yolo11m_epochs_1_batch_-1",  # Updated to match your training epochs
+        model_dir="pcb_yolo11m_epochs_1_batch_-1",
         results_dir=results_dir
     )
 

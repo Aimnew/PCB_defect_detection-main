@@ -1,7 +1,6 @@
 from pathlib import Path
 import cv2
 import pandas as pd
-import numpy as np
 
 
 def resize_images(
@@ -10,37 +9,28 @@ def resize_images(
     target_size: tuple = (640, 640)
 ) -> None:
     """
-    Resize images with improved preprocessing
+    Resize images in the input directory and save them to the output directory
+    :param input_dir: input directory containing images
+    :param output_dir: output directory for resized images
+    :param target_size: target size for resized images
+    :return: None
     """
+    # Create the output directory if it doesn't exist
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    # Convert input_dir to Path if it's not already
+    input_dir = Path(input_dir)
+
     for image_path in input_dir.rglob("*.jpg"):
+        # Read the image - convert Path to string for cv2.imread
         image = cv2.imread(str(image_path))
-        
-        # Улучшить качество изображения
-        image = cv2.fastNlMeansDenoisingColored(image, None, 10, 10, 7, 21)  # Убрать шум
-        
-        # Улучшить контраст
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-        cl = clahe.apply(l)
-        limg = cv2.merge((cl,a,b))
-        image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-        
-        # Resize с сохранением пропорций
-        h, w = image.shape[:2]
-        ratio = min(target_size[0]/w, target_size[1]/h)
-        new_size = (int(w*ratio), int(h*ratio))
-        resized = cv2.resize(image, new_size, interpolation=cv2.INTER_AREA)
-        
-        # Создать холст нужного размера
-        canvas = np.full((target_size[1], target_size[0], 3), (114,114,114), dtype=np.uint8)
-        
-        # Разместить изображение по центру
-        x_offset = (target_size[0] - new_size[0]) // 2
-        y_offset = (target_size[1] - new_size[1]) // 2
-        canvas[y_offset:y_offset+new_size[1], x_offset:x_offset+new_size[0]] = resized
-        
-        cv2.imwrite(str(Path(output_dir) / image_path.name), canvas)
+
+        # Resize the image
+        resized_image = cv2.resize(image, target_size)
+
+        # Save the resized image to the output folder
+        output_path = Path(output_dir) / image_path.name
+        cv2.imwrite(str(output_path), resized_image)
 
 
 def resize_annotations(
